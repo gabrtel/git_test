@@ -183,7 +183,7 @@
 
       if (ganhou) {
         document.getElementById("mensagem").innerText = "🎉 Parabéns! Você completou o versículo!";
-      } else if (erros >= 6) {
+      } else if (erros >= 99) {
         document.getElementById("mensagem").innerText = "😢 Você perdeu! A frase era:\n" + versiculoCompleto.replaceAll(" / ", " ");
       }
     }
