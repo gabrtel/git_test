@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Jogo da Forca - ECRI Story</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-image: url('Fundo.jpg');
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    h2 {
+      font-size: 32px;
+      color: #ffff66;
+      text-shadow: 2px 2px 4px #000;
+    }
+
+    .linha {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .espaco {
+      display: inline-block;
+      width: 34px;
+      height: 42px;
+      border-bottom: 3px solid #0055cc;
+      background-color: white;
+      color: #0055cc;
+      font-size: 32px;
+      font-weight: bold;
+      text-align: center;
+      line-height: 40px;
+      border-radius: 5px;
+    }
+
+    .espaco.space {
+      border: none;
+      background: none;
+    }
+
+    #letras {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 140px;
+    }
+
+    .teclado-linha {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      width: 50px;
+      height: 50px;
+      font-size: 22px;
+      background-color: white;
+      color: red;
+      border: 2px solid red;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 1px 1px 3px #000;
+    }
+
+    button:disabled {
+      background-color: #ddd;
+      color: #888;
+      border-color: #999;
+      cursor: not-allowed;
+    }
+
+    #mensagem {
+      margin-top: 100px;
+      font-size: 26px;
+      color: #00ff99;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    #erros {
+      font-size: 22px;
+      margin-top: 10px;
+      color: #ffcc00;
+    }
+
+    #controle-musica {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 999;
+  font-size: 18px;
+  padding: 10px 20px;
+  background-color: #ffffcc;
+  color: #333;
+  border: 2px solid #999;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 1px 1px 3px #000;
+    }
+  </style>
+</head>
+<body>
+  <h2>Descubra o Tema - ECRI Story</h2>
+  <p><strong>Dica:</strong> Versículo de Romanos 15,13a</p>
+
+  <button id="controle-musica" onclick="toggleMusica()">🔊 Ligar/Desligar Música</button>
+
+  <!-- Música de fundo -->
+  <audio id="musica" autoplay loop>
+    <source src="amigo-estou-aqui.mp3" type="audio/mpeg">
+    Seu navegador não suporta áudio.
+  </audio>
+
+  <div id="palavra"></div>
+
+  <div id="letras">
+    <div class="teclado-linha" id="linha1"></div>
+    <div class="teclado-linha" id="linha2"></div>
+  </div>
+
+  <p id="erros">Erros: 0</p>
+  <p id="mensagem"></p>
+
+  <script>
+    const versiculoCompleto = "O DEUS DA ESPERANCA / VOS ENCHA DE TODA A ALEGRIA / E DE TODA A PAZ";
+    const versiculoLinhas = versiculoCompleto.split(" / ");
+    const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let reveladas = versiculoLinhas.map(linha =>
+      Array.from(linha).map(char => (char === " " ? " " : "_"))
+    );
+    let erros = 0;
+
+    function atualizarPalavra() {
+      const container = document.getElementById("palavra");
+      container.innerHTML = "";
+
+      reveladas.forEach(linha => {
+        const linhaDiv = document.createElement("div");
+        linhaDiv.className = "linha";
+        linha.forEach((char, idx) => {
+          const span = document.createElement("span");
+          span.className = char === " " ? "espaco space" : "espaco";
+          span.textContent = char === " " ? "" : char;
+          linhaDiv.appendChild(span);
+        });
+        container.appendChild(linhaDiv);
+      });
+    }
+
+    function clicarLetra(letra, btn) {
+      btn.disabled = true;
+      let acertou = false;
+
+      for (let l = 0; l < versiculoLinhas.length; l++) {
+        for (let i = 0; i < versiculoLinhas[l].length; i++) {
+          if (versiculoLinhas[l][i] === letra) {
+            reveladas[l][i] = letra;
+            acertou = true;
+          }
+        }
+      }
+
+      if (!acertou) erros++;
+      document.getElementById("erros").innerText = "Erros: " + erros;
+      atualizarPalavra();
+
+      const ganhou = reveladas.flat().every((c, idx) =>
+        versiculoCompleto.replaceAll(" / ", "").charAt(idx) === " " ? true : c !== "_"
+      );
+
+      if (ganhou) {
+        document.getElementById("mensagem").innerText = "🎉 Parabéns! Você completou o versículo!";
+      } else if (erros >= 6) {
+        document.getElementById("mensagem").innerText = "😢 Você perdeu! A frase era:\n" + versiculoCompleto.replaceAll(" / ", " ");
+      }
+    }
+
+    function montarTeclado() {
+      const linha1 = document.getElementById("linha1");
+      const linha2 = document.getElementById("linha2");
+
+      letras.split("").forEach((letra, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = letra;
+        btn.onclick = () => clicarLetra(letra, btn);
+
+        if (i < 13) linha1.appendChild(btn);
+        else linha2.appendChild(btn);
+      });
+    }
+
+    function toggleMusica() {
+      const audio = document.getElementById("musica");
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+
+    atualizarPalavra();
+    montarTeclado();
+  </script>
+</body>
+</html>
